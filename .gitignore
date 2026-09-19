@@ -33,3 +33,6 @@ server/uploads/*
 
 # TS cache
 *.tsbuildinfo
+
+# Test payloads
+server/test/
