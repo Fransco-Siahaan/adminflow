@@ -14,6 +14,8 @@ import {
   updateTaskSchema,
   updateStatusSchema,
 } from '../validators/task.validator';
+import { taskCommentRoutes } from './comment.routes';
+import { taskAttachmentRoutes } from './attachment.routes';
 
 const router = Router();
 
@@ -55,5 +57,9 @@ router.patch('/:id/status', validateBody(updateStatusSchema), updateStatus);
  * @desc    Delete task (manager only)
  */
 router.delete('/:id', authorize('manager'), deleteTask);
+
+// ===== Nested routes =====
+router.use('/:taskId/comments', taskCommentRoutes);
+router.use('/:taskId/attachments', taskAttachmentRoutes);
 
 export default router;

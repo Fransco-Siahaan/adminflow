@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { env, isDev } from './config/env';
 import { errorHandler, notFoundHandler } from './middlewares/error';
 import { customSanitize } from './middlewares/sanitize';
@@ -13,7 +14,7 @@ export function createApp(): Application {
   const app = express();
 
   // ===== Security =====
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   app.use(
     cors({
@@ -22,7 +23,6 @@ export function createApp(): Application {
     })
   );
 
-  // Rate limit — 15 menit window
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: isDev ? 1000 : 200,
@@ -43,6 +43,9 @@ export function createApp(): Application {
   // ===== Sanitization =====
   app.use(customSanitize);
   app.use(hpp());
+
+  // ===== Static Files =====
+  app.use('/uploads', express.static(path.join(process.cwd(), env.UPLOAD_DIR)));
 
   // ===== Health Check =====
   app.get('/api/health', (_req: Request, res: Response) => {
