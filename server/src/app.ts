@@ -2,11 +2,12 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import mongoSanitize from '@exortek/express-mongo-sanitize';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import { env, isDev } from './config/env';
 import { errorHandler, notFoundHandler } from './middlewares/error';
+import { customSanitize } from './middlewares/sanitize';
+import routes from './routes';
 
 export function createApp(): Application {
   const app = express();
@@ -40,7 +41,7 @@ export function createApp(): Application {
   app.use(cookieParser());
 
   // ===== Sanitization =====
-  app.use(mongoSanitize());
+  app.use(customSanitize);
   app.use(hpp());
 
   // ===== Health Check =====
@@ -52,6 +53,9 @@ export function createApp(): Application {
       env: env.NODE_ENV,
     });
   });
+
+  // ===== API Routes =====
+  app.use('/api', routes);
 
   // ===== 404 + Error =====
   app.use(notFoundHandler);
