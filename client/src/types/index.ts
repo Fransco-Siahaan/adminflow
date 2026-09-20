@@ -65,7 +65,7 @@ export type ActivityAction =
 
 export interface Activity {
   _id: string;
-  taskId: Pick<Task, '_id' | 'title' | 'status'> | string;
+  taskId: Pick<Task, '_id' | 'title' | 'status'> | string | null;
   userId: User;
   action: ActivityAction;
   metadata?: Record<string, unknown>;

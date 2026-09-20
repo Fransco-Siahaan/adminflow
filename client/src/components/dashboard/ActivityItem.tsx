@@ -25,9 +25,10 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 export default function ActivityItem({ activity }: ActivityItemProps) {
-  const task = activity.taskId as Task;
-  const taskTitle = typeof task === 'object' ? task.title : 'Task';
-  const taskId = typeof task === 'object' ? task._id : task;
+  const task = activity.taskId;
+  const taskObj = task && typeof task === 'object' ? (task as Task) : null;
+  const taskTitle = taskObj?.title || 'Task yang sudah dihapus';
+  const taskId = taskObj?._id ?? null;
 
   return (
     <div className="flex items-start gap-3 py-3">
@@ -42,13 +43,17 @@ export default function ActivityItem({ activity }: ActivityItemProps) {
             {activity.userId.name}
           </span>{' '}
           {ACTION_LABELS[activity.action] || activity.action}{' '}
-          {taskId && (
+          {taskId ? (
             <Link
               to={`/tasks/${taskId}`}
               className="font-medium text-primary-600 hover:text-primary-700"
             >
               {taskTitle}
             </Link>
+          ) : (
+            <span className="font-medium text-surface-500 italic">
+              {taskTitle}
+            </span>
           )}
         </p>
         <p className="text-xs text-surface-400 mt-0.5">

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { ActivityLog } from '../models/ActivityLog';
 import { Task } from '../models/Task';
 import { Comment } from '../models/Comment';
 import { Attachment } from '../models/Attachment';
@@ -187,10 +188,7 @@ export const getTaskDetail = asyncHandler(
       Attachment.find({ taskId: task._id })
         .populate('userId', 'name email role')
         .sort({ createdAt: -1 }),
-      // Ambil dari ActivityLog — nanti kita tambah importnya
-      (await import('../models/ActivityLog')).ActivityLog.find({
-        taskId: task._id,
-      })
+      ActivityLog.find({ taskId: task._id })
         .populate('userId', 'name email role')
         .sort({ createdAt: -1 })
         .limit(50),
@@ -337,6 +335,7 @@ export const updateStatus = asyncHandler(
 
 /**
  * DELETE /api/tasks/:id (Manager only)
+ * Hapus task + semua data terkait (comments, attachments, activity logs).
  */
 export const deleteTask = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -350,6 +349,7 @@ export const deleteTask = asyncHandler(
       Task.deleteOne({ _id: task._id }),
       Comment.deleteMany({ taskId: task._id }),
       Attachment.deleteMany({ taskId: task._id }),
+      ActivityLog.deleteMany({ taskId: task._id }),
     ]);
 
     res.json({
