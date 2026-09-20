@@ -1,4 +1,4 @@
-import type { Activity, Task } from '../../types';
+import type { Activity, User } from '../../types';
 import { formatRelative, getInitials } from '../../utils/format';
 
 interface ActivityTimelineProps {
@@ -39,30 +39,46 @@ export default function ActivityTimeline({ activities }: ActivityTimelineProps) 
 
       <div className="space-y-4">
         {activities.map((activity) => {
+          // Handle user yang sudah dihapus
+          const user = activity.userId as User | null | undefined;
+          const userName = user?.name || 'User yang sudah dihapus';
+          const isDeletedUser = !user?.name;
+
           const meta = activity.metadata as Record<string, any>;
           let detail = '';
 
-          if (activity.action === 'status_changed' || activity.action === 'task_completed') {
+          if (
+            activity.action === 'status_changed' ||
+            activity.action === 'task_completed'
+          ) {
             detail = `${meta?.from ?? '?'} → ${meta?.to ?? '?'}`;
           } else if (activity.action === 'file_uploaded') {
             detail = meta?.fileName ?? '';
           } else if (activity.action === 'task_assigned') {
-            detail = meta?.assignedToName
-              ? `ke ${meta.assignedToName}`
-              : '';
+            detail = meta?.assignedToName ? `ke ${meta.assignedToName}` : '';
           }
 
           return (
             <div key={activity._id} className="relative flex gap-3">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 z-10 ${ACTION_COLORS[activity.action] ?? 'bg-surface-400'}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 z-10 ${
+                  isDeletedUser
+                    ? 'bg-surface-400'
+                    : ACTION_COLORS[activity.action] ?? 'bg-surface-400'
+                }`}
               >
-                {getInitials(activity.userId.name)}
+                {getInitials(userName)}
               </div>
               <div className="flex-1 min-w-0 pt-1">
                 <p className="text-sm text-surface-700">
-                  <span className="font-medium text-surface-900">
-                    {activity.userId.name}
+                  <span
+                    className={`font-medium ${
+                      isDeletedUser
+                        ? 'text-surface-500 italic'
+                        : 'text-surface-900'
+                    }`}
+                  >
+                    {userName}
                   </span>{' '}
                   {ACTION_LABELS[activity.action] ?? activity.action}
                   {detail && (

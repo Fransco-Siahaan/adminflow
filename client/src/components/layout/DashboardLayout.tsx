@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import PageTransition from './PageTransition';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,7 +15,9 @@ export default function DashboardLayout() {
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
 
         <main className="p-4 md:p-6 lg:p-8">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
     </div>
