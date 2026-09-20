@@ -1,10 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+import type { ReactNode } from 'react';
+
 interface NavItem {
   to: string;
   label: string;
-  icon: JSX.Element;
+  icon: ReactNode;
   roles?: ('manager' | 'staff')[];
 }
 

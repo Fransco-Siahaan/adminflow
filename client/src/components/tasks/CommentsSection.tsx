@@ -1,4 +1,5 @@
-import { useState, FormEvent, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { FormEvent } from 'react';
 import gsap from 'gsap';
 import { api, getErrorMessage } from '../../lib/axios';
 import { useToast } from '../../context/ToastContext';
