@@ -32,7 +32,7 @@ export const uploadAttachment = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const { taskId } = req.params;
+    const taskId = req.params.taskId as string;
 
     // Cek file ada
     if (!req.file) {
@@ -106,7 +106,7 @@ export const deleteAttachment = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const attachment = await Attachment.findById(req.params.id);
+    const attachment = await Attachment.findById(req.params.id as string);
     if (!attachment) throw ApiError.notFound('Attachment tidak ditemukan');
 
     const isOwner = attachment.userId.toString() === req.user._id.toString();

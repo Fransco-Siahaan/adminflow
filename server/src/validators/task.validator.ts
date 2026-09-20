@@ -4,12 +4,12 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 export const createTaskSchema = z.object({
   title: z
-    .string({ required_error: 'Judul wajib diisi' })
+    .string({ error: 'Judul wajib diisi' })
     .trim()
     .min(3, 'Judul minimal 3 karakter')
     .max(200, 'Judul maksimal 200 karakter'),
   description: z
-    .string({ required_error: 'Deskripsi wajib diisi' })
+    .string({ error: 'Deskripsi wajib diisi' })
     .trim()
     .min(1, 'Deskripsi wajib diisi')
     .max(5000, 'Deskripsi maksimal 5000 karakter'),
@@ -18,11 +18,11 @@ export const createTaskSchema = z.object({
     .optional()
     .default('medium'),
   deadline: z
-    .string({ required_error: 'Deadline wajib diisi' })
+    .string({ error: 'Deadline wajib diisi' })
     .refine((val) => !isNaN(Date.parse(val)), 'Format tanggal tidak valid')
     .transform((val) => new Date(val)),
   assignedTo: z
-    .string({ required_error: 'Staff wajib dipilih' })
+    .string({ error: 'Staff wajib dipilih' })
     .regex(objectIdRegex, 'ID staff tidak valid'),
 });
 
@@ -44,7 +44,7 @@ export const updateTaskSchema = z.object({
 export const updateStatusSchema = z.object({
   status: z.enum(
     ['pending', 'in_progress', 'review', 'completed', 'needs_revision'],
-    { required_error: 'Status wajib diisi' }
+    { error: 'Status wajib diisi' }
   ),
 });
 

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
-import { ActivityLog } from '../models/ActivityLog';
 import { signToken } from '../utils/jwt';
 import { ApiError } from '../utils/ApiError';
 import { asyncHandler } from '../utils/asyncHandler';

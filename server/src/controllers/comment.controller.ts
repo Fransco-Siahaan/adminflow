@@ -31,7 +31,7 @@ export const createComment = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const { taskId } = req.params;
+    const taskId = req.params.taskId as string;
     const { comment } = req.body as CreateCommentInput;
 
     // Cek akses
@@ -93,7 +93,7 @@ export const deleteComment = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const comment = await Comment.findById(req.params.id);
+    const comment = await Comment.findById(req.params.id as string);
     if (!comment) throw ApiError.notFound('Komentar tidak ditemukan');
 
     const isOwner = comment.userId.toString() === req.user._id.toString();
