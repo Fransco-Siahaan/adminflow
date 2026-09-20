@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../hooks';
@@ -9,7 +9,7 @@ import Button from '../components/ui/Button';
 import { formatDate, getInitials } from '../utils/format';
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const { profile, taskStats, isLoading, error, refetch } = useProfile();
