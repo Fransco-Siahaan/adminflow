@@ -4,7 +4,7 @@
   "private": true,
   "description": "AdminFlow — Simple Administrative Workflow Management System",
   "scripts": {
-    "build": "cd server && npm install && npm run build",
+    "build": "cd server && npm install --include=dev && npm run build",
     "start": "cd server && npm start"
   },
   "engines": {
