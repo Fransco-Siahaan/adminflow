@@ -16,7 +16,6 @@ import {
 
 /**
  * POST /api/tasks (Manager only)
- * Manager membuat task baru dan assign ke staff.
  */
 export const createTask = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -25,7 +24,6 @@ export const createTask = asyncHandler(
 
     if (!req.user) throw ApiError.unauthorized();
 
-    // Cek assigned user ada & rolenya staff/manager
     const assignedUser = await User.findById(assignedTo);
     if (!assignedUser) {
       throw ApiError.badRequest('User yang di-assign tidak ditemukan');
@@ -40,7 +38,6 @@ export const createTask = asyncHandler(
       createdBy: req.user._id,
     });
 
-    // Log aktivitas
     await logActivity({
       taskId: task._id,
       userId: req.user._id,
@@ -55,7 +52,6 @@ export const createTask = asyncHandler(
       metadata: { assignedTo, assignedToName: assignedUser.name },
     });
 
-    // Populate sebelum return
     await task.populate([
       { path: 'assignedTo', select: 'name email role' },
       { path: 'createdBy', select: 'name email role' },
@@ -71,7 +67,6 @@ export const createTask = asyncHandler(
 
 /**
  * GET /api/tasks
- * Manager: lihat semua task. Staff: hanya task yang di-assign ke dia.
  */
 export const listTasks = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -79,10 +74,8 @@ export const listTasks = asyncHandler(
 
     const query = req.query as unknown as ListTaskQuery;
 
-    // Build filter
     const filter: Record<string, unknown> = {};
 
-    // Staff hanya lihat task dirinya
     if (req.user.role === 'staff') {
       filter.assignedTo = req.user._id;
     } else if (query.assignedTo) {
@@ -99,7 +92,6 @@ export const listTasks = asyncHandler(
       ];
     }
 
-    // Deadline filter
     if (query.deadlineFilter) {
       const now = new Date();
       const startOfToday = new Date(
@@ -128,7 +120,6 @@ export const listTasks = asyncHandler(
       }
     }
 
-    // Pagination
     const page = parseInt(query.page || '1', 10);
     const limit = Math.min(parseInt(query.limit || '50', 10), 100);
     const skip = (page - 1) * limit;
@@ -160,19 +151,17 @@ export const listTasks = asyncHandler(
 
 /**
  * GET /api/tasks/:id
- * Detail task + komentar + attachment + activity log.
  */
 export const getTaskDetail = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const task = await Task.findById(req.params.id)
+    const task = await Task.findById(req.params.id as string)
       .populate('assignedTo', 'name email role')
       .populate('createdBy', 'name email role');
 
     if (!task) throw ApiError.notFound('Task tidak ditemukan');
 
-    // Staff hanya boleh lihat task dirinya
     if (
       req.user.role === 'staff' &&
       task.assignedTo._id.toString() !== req.user._id.toString()
@@ -180,7 +169,6 @@ export const getTaskDetail = asyncHandler(
       throw ApiError.forbidden('Anda tidak punya akses ke task ini');
     }
 
-    // Ambil komentar, attachment, activity (paralel)
     const [comments, attachments, activities] = await Promise.all([
       Comment.find({ taskId: task._id })
         .populate('userId', 'name email role')
@@ -208,7 +196,6 @@ export const getTaskDetail = asyncHandler(
 
 /**
  * PATCH /api/tasks/:id
- * Update task (manager only).
  */
 export const updateTask = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -216,10 +203,9 @@ export const updateTask = asyncHandler(
 
     const updates = req.body as UpdateTaskInput;
 
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findById(req.params.id as string);
     if (!task) throw ApiError.notFound('Task tidak ditemukan');
 
-    // Track changes untuk activity log
     const changes: Record<string, unknown> = {};
 
     if (updates.title && updates.title !== task.title) {
@@ -280,9 +266,6 @@ export const updateTask = asyncHandler(
 
 /**
  * PATCH /api/tasks/:id/status
- * Update status task.
- * - Staff: hanya boleh set in_progress atau review (untuk task dirinya).
- * - Manager: boleh set status apapun (untuk review).
  */
 export const updateStatus = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -290,19 +273,17 @@ export const updateStatus = asyncHandler(
 
     const { status } = req.body as UpdateStatusInput;
 
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findById(req.params.id as string);
     if (!task) throw ApiError.notFound('Task tidak ditemukan');
 
     const isManager = req.user.role === 'manager';
     const isAssignedStaff =
       task.assignedTo.toString() === req.user._id.toString();
 
-    // Staff hanya untuk task dirinya
     if (!isManager && !isAssignedStaff) {
       throw ApiError.forbidden('Anda tidak punya akses ke task ini');
     }
 
-    // Staff hanya boleh set in_progress atau review
     if (!isManager && !['in_progress', 'review'].includes(status)) {
       throw ApiError.forbidden(
         'Staff hanya bisa mengubah status ke "in_progress" atau "review"'
@@ -335,16 +316,14 @@ export const updateStatus = asyncHandler(
 
 /**
  * DELETE /api/tasks/:id (Manager only)
- * Hapus task + semua data terkait (comments, attachments, activity logs).
  */
 export const deleteTask = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findById(req.params.id as string);
     if (!task) throw ApiError.notFound('Task tidak ditemukan');
 
-    // Hapus task + related data
     await Promise.all([
       Task.deleteOne({ _id: task._id }),
       Comment.deleteMany({ taskId: task._id }),

@@ -82,7 +82,7 @@ export const listAttachments = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    const { taskId } = req.params;
+    const taskId = req.params.taskId as string;
 
     await assertTaskAccess(taskId, req.user._id.toString(), req.user.role);
 

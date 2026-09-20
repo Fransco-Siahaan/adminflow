@@ -6,7 +6,6 @@ import { asyncHandler } from '../utils/asyncHandler';
 
 /**
  * GET /api/users (Manager only)
- * List semua user.
  */
 export const listUsers = asyncHandler(
   async (_req: Request, res: Response): Promise<void> => {
@@ -23,26 +22,22 @@ export const listUsers = asyncHandler(
 
 /**
  * GET /api/users/:id
- * Detail user + statistik task-nya.
  */
 export const getUserDetail = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    // Staff hanya bisa lihat dirinya sendiri
-    if (
-      req.user.role === 'staff' &&
-      req.user._id.toString() !== req.params.id
-    ) {
+    const userId = req.params.id as string;
+
+    if (req.user.role === 'staff' && req.user._id.toString() !== userId) {
       throw ApiError.forbidden('Anda hanya bisa melihat profil sendiri');
     }
 
-    const user = await User.findById(req.params.id).select(
+    const user = await User.findById(userId).select(
       'name email role createdAt'
     );
     if (!user) throw ApiError.notFound('User tidak ditemukan');
 
-    // Statistik task user ini
     const [assignedTotal, assignedCompleted, assignedInProgress, assignedOverdue] =
       await Promise.all([
         Task.countDocuments({ assignedTo: user._id }),
@@ -72,7 +67,6 @@ export const getUserDetail = asyncHandler(
 
 /**
  * PATCH /api/users/:id (Manager only)
- * Update user (name, role). Tidak update password di sini.
  */
 export const updateUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -80,7 +74,7 @@ export const updateUser = asyncHandler(
 
     const { name, role } = req.body as { name?: string; role?: string };
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id as string);
     if (!user) throw ApiError.notFound('User tidak ditemukan');
 
     if (name) user.name = name;
@@ -88,7 +82,6 @@ export const updateUser = asyncHandler(
       if (!['manager', 'staff'].includes(role)) {
         throw ApiError.badRequest('Role harus "manager" atau "staff"');
       }
-      // Cegah manager turunkan dirinya sendiri (biar gak terkunci)
       if (
         req.user._id.toString() === user._id.toString() &&
         user.role === 'manager' &&
@@ -124,15 +117,15 @@ export const deleteUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) throw ApiError.unauthorized();
 
-    // Tidak bisa hapus diri sendiri
-    if (req.user._id.toString() === req.params.id) {
+    const userId = req.params.id as string;
+
+    if (req.user._id.toString() === userId) {
       throw ApiError.badRequest('Anda tidak bisa menghapus akun sendiri');
     }
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(userId);
     if (!user) throw ApiError.notFound('User tidak ditemukan');
 
-    // Cek apakah user masih punya task aktif
     const activeTasks = await Task.countDocuments({
       assignedTo: user._id,
       status: { $ne: 'completed' },
