@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import type { Activity, Task } from '../../types';
+import type { Activity, Task, User } from '../../types';
 import { formatRelative } from '../../utils/format';
 
 interface ActivityItemProps {
@@ -25,22 +25,38 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 export default function ActivityItem({ activity }: ActivityItemProps) {
+  // Handle task yang sudah dihapus
   const task = activity.taskId;
   const taskObj = task && typeof task === 'object' ? (task as Task) : null;
   const taskTitle = taskObj?.title || 'Task yang sudah dihapus';
   const taskId = taskObj?._id ?? null;
 
+  // Handle user yang sudah dihapus
+  const user = activity.userId as User | null | undefined;
+  const userName = user?.name || 'User yang sudah dihapus';
+  const isDeletedUser = !user?.name;
+
   return (
     <div className="flex items-start gap-3 py-3">
       <div
-        className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold ${ACTION_COLORS[activity.action] || 'bg-surface-100 text-surface-600'}`}
+        className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold ${
+          isDeletedUser
+            ? 'bg-surface-200 text-surface-500'
+            : ACTION_COLORS[activity.action] || 'bg-surface-100 text-surface-600'
+        }`}
       >
-        {activity.userId.name.charAt(0).toUpperCase()}
+        {userName.charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-surface-700">
-          <span className="font-medium text-surface-900">
-            {activity.userId.name}
+          <span
+            className={`font-medium ${
+              isDeletedUser
+                ? 'text-surface-500 italic'
+                : 'text-surface-900'
+            }`}
+          >
+            {userName}
           </span>{' '}
           {ACTION_LABELS[activity.action] || activity.action}{' '}
           {taskId ? (
