@@ -16,9 +16,21 @@ export function createApp(): Application {
   // ===== Security =====
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
+  // Support multiple origins (dev + prod, dipisah koma)
+  const allowedOrigins = env.CLIENT_URL.split(',').map((url) => url.trim());
+
   app.use(
     cors({
-      origin: env.CLIENT_URL,
+      origin: (origin, callback) => {
+        // Allow requests tanpa origin (Postman, curl, mobile apps)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        callback(new Error(`Origin ${origin} tidak diizinkan CORS`));
+      },
       credentials: true,
     })
   );
